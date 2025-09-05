@@ -111,7 +111,13 @@ if st.session_state.app_state == 'main':
         st.subheader("Create a New Timer")
         duration = st.number_input("Countdown Time (minutes)", min_value=1, value=20, step=1)
         title = st.text_input("Title", placeholder="e.g., Work on project report")
-        tags = st.multiselect("Tags (select existing or type a new one)", options=all_tags, default=[])
+        
+        # MODIFIED: Changed the multiselect to only handle existing tags
+        selected_tags = st.multiselect("Select existing tags", options=all_tags, default=[])
+
+        # NEW: Text input for adding new tags
+        new_tags_str = st.text_input("Add new tags (comma-separated)", placeholder="e.g., project-alpha, urgent")
+        
         description = st.text_area("Description (optional)")
         submitted = st.form_submit_button("🚀 Start Countdown")
 
@@ -119,13 +125,17 @@ if st.session_state.app_state == 'main':
             if not title:
                 st.error("Please provide a title for the timer.")
             else:
+                # MODIFIED: Combine tags from both inputs
+                new_tags = [tag.strip() for tag in new_tags_str.split(',') if tag.strip()]
+                final_tags = sorted(list(set(selected_tags + new_tags)))
+                
                 # Set session state for the new timer
                 st.session_state.app_state = 'timing'
                 st.session_state.session_id = str(uuid.uuid4())
                 st.session_state.timer_start_time = datetime.now()
                 st.session_state.timer_end_time = st.session_state.timer_start_time + timedelta(minutes=duration)
                 st.session_state.session_info = {
-                    "title": title, "tags": tags, "description": description, "duration": duration
+                    "title": title, "tags": final_tags, "description": description, "duration": duration
                 }
                 
                 # Log the start event
@@ -133,7 +143,7 @@ if st.session_state.app_state == 'main':
                     session_id=st.session_state.session_id,
                     event='start',
                     title=title,
-                    tags=tags,
+                    tags=final_tags,
                     description=description,
                     duration_minutes=duration
                 )
@@ -177,7 +187,6 @@ elif st.session_state.app_state == 'timing':
 # === ALARM VIEW: TIMER FINISHED ===
 elif st.session_state.app_state == 'alarm':
     st.title("🎉 Time's Up!")
-    st.dialog('TIME IS UP!!!')
     st.success(f"You completed your session: **{st.session_state.session_info['title']}**")
     
     # Autoplay a short sound
