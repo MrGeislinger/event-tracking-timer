@@ -6,7 +6,7 @@ import uuid
 import os
 
 # --- Configuration & Setup ---
-LOG_FILE = "timer_log.csv"
+LOG_FILE = "log.csv"
 LOG_COLUMNS = [
     "session_id", "timestamp", "event", "title", "tags",
     "description", "duration_minutes", "elapsed_seconds"
